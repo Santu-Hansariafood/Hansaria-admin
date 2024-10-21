@@ -52,9 +52,6 @@ const updateRate = async (req, res) => {
     const { companyName } = req.params;
     const { updates } = req.body;
 
-    // Log the updates to see what dates are being sent
-    console.log("Received updates:", updates);
-
     // Find all rate entries for the given company
     const rateEntries = await RateEntry.find({ company: companyName });
 
