@@ -62,29 +62,35 @@ const updateRate = async (req, res) => {
     }
 
     // Loop through each update request
-    updates.forEach(({ entryIndex, commodityIndex, date, rate }) => {
-      const entry = rateEntries[entryIndex];
-      const commodity = entry.commodities[commodityIndex];
+    updates.forEach(({ commodityName, date, rate }) => {
+      rateEntries.forEach((entry) => {
+        // Find the specific commodity
+        const commodity = entry.commodities.find(
+          (c) => c.commodityName === commodityName
+        );
 
-      // Check if a rate for the specific date already exists
-      const existingRate = commodity.rates.find((r) => r.date === date);
+        if (commodity) {
+          // Find if the rate for the given date exists
+          const existingRate = commodity.rates.find((r) => r.date === date);
 
-      if (existingRate) {
-        // Update the existing rate
-        existingRate.rate = rate;
-      } else {
-        // Add a new rate for the specified date
-        commodity.rates.push({ date, rate });
-      }
+          if (existingRate) {
+            // Update the existing rate
+            existingRate.rate = rate;
+          } else {
+            // If the date does not exist, add a new rate entry
+            commodity.rates.push({ date, rate });
+          }
+        }
+      });
     });
 
     // Save the updated rate entries back to the database
     await Promise.all(rateEntries.map((entry) => entry.save()));
 
-    return res.status(200).json({ message: "Rates updated successfully" });
+    return res.status(200).json({ message: "Rates updated successfully", rateEntries });
   } catch (error) {
     console.error("Error updating rates:", error);
-    return res.status(500).json({ message: "Error updating rates", error });
+    return res.status(500).json({ message: "Error updating rates", error: error.message });
   }
 };
 
